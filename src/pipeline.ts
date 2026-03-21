@@ -3,7 +3,7 @@ import { join, dirname } from 'node:path';
 import { Repository } from 'rit';
 import { EntityStore } from 'rit/packages/rit-schema/src/index.js';
 import { ModuleSchema } from 'rit/packages/rit-sync/src/schemas.js';
-import { FileMaterializer, typescriptPlugin } from 'rit/packages/rit-sync/src/index.js';
+import { FileMaterializer, typescriptPlugin, jsonPlugin } from 'rit/packages/rit-sync/src/index.js';
 
 export interface PipelineContext {
   repoName: string;
@@ -111,28 +111,6 @@ export async function executePipeline(ctx: PipelineContext) {
           continue;
         }
 
-        if (command === '__init__') {
-          // Create package.json with rit dependency and install
-          const pkg = { name: repoName, type: 'module', dependencies: { rit: 'github:Ntropish/rit' } };
-          writeFileSync(join(workDir, 'package.json'), JSON.stringify(pkg, null, 2));
-          const proc = Bun.spawn(['bun', 'install'], { cwd: workDir, stdout: 'pipe', stderr: 'pipe' });
-          const stdout = await new Response(proc.stdout).text();
-          const stderr = await new Response(proc.stderr).text();
-          const exitCode = await proc.exited;
-          const duration = Date.now() - start;
-          if (exitCode !== 0) {
-            const result: StepResult = { name: stepName, status: 'failed', duration, output: stdout, error: stderr };
-            results.push(result);
-            pipelineStatus = 'failed';
-            await reportStatus(statusUrl, { type: 'step-complete', repoName, pipelineName, branch, commitHash, step: result, timestamp: new Date().toISOString() });
-            break;
-          }
-          const result: StepResult = { name: stepName, status: 'success', duration, output: stdout };
-          results.push(result);
-          await reportStatus(statusUrl, { type: 'step-complete', repoName, pipelineName, branch, commitHash, step: result, timestamp: new Date().toISOString() });
-          continue;
-        }
-
         // Execute shell command
         const proc = Bun.spawn(['bash', '-c', command], {
           cwd: workDir,
@@ -217,9 +195,10 @@ export async function executePipeline(ctx: PipelineContext) {
 }
 
 async function materializeRepo(entityStore: EntityStore, outputDir: string) {
-  const modules = await entityStore.list(ModuleSchema);
   const materializer = new FileMaterializer(entityStore);
 
+  // Materialize TypeScript/JavaScript modules
+  const modules = await entityStore.list(ModuleSchema);
   for (const mod of modules) {
     const modulePath = mod.path as string;
     try {
@@ -230,6 +209,20 @@ async function materializeRepo(entityStore: EntityStore, outputDir: string) {
       console.log(`  Materialized: ${modulePath}.ts`);
     } catch (err: any) {
       console.error(`  Failed to materialize ${modulePath}: ${err.message}`);
+    }
+  }
+
+  // Materialize JSON files
+  const jsonPaths = await materializer.listJsonFiles();
+  for (const jsonPath of jsonPaths) {
+    try {
+      const content = await materializer.materializeJson(jsonPath, jsonPlugin);
+      const outPath = join(outputDir, jsonPath);
+      mkdirSync(dirname(outPath), { recursive: true });
+      writeFileSync(outPath, content);
+      console.log(`  Materialized: ${jsonPath}`);
+    } catch (err: any) {
+      console.error(`  Failed to materialize ${jsonPath}: ${err.message}`);
     }
   }
 }
