@@ -12,14 +12,14 @@ import { RawFileSchema } from 'rit/packages/rit-sync/src/index.js';
 import { executePipeline } from './pipeline.js';
 import { SecretsStore } from './secrets.js';
 
-const secretsStore = new SecretsStore(reposDir);
-
 const reposDir = resolve(process.argv[2] ?? './repos');
 const port = parseInt(process.env.PORT ?? '4580', 10);
 const authIssuer = process.env.AUTH_ISSUER ?? 'https://auth.trivorn.org';
 const statusUrl = process.env.STATUS_URL ?? '';  // URL to POST status updates to
 
 if (!existsSync(reposDir)) mkdirSync(reposDir, { recursive: true });
+
+const secretsStore = new SecretsStore(reposDir);
 
 // ── Auth ──────────────────────────────────────────────────────
 
