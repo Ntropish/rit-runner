@@ -213,6 +213,24 @@ const server = Bun.serve({
       return json(result);
     }
 
+    // POST /api/repos/:name/trigger - retrigger pipelines for a branch
+    const triggerMatch = path.match(/^\/api\/repos\/([^/]+)\/trigger$/);
+    if (triggerMatch && method === 'POST') {
+      const name = decodeURIComponent(triggerMatch[1]);
+      const r = await getRepo(name);
+      if (!r) return error('Repo not found', 404);
+      const body = await req.json() as { branch?: string };
+      const branch = body.branch ?? 'main';
+
+      // Read latest commit hash from repo refs
+      const refsResult = await handleRefs(r.repo);
+      const commitHash = refsResult.branches?.[branch] ?? 'unknown';
+
+      console.log(`Manual trigger: ${name}@${branch} (${commitHash})`);
+      triggerPipelines(name, branch, commitHash);
+      return json({ triggered: true, repo: name, branch, commitHash });
+    }
+
     // POST /api/repos/:name/pull
     const pullMatch = path.match(/^\/api\/repos\/([^/]+)\/pull$/);
     if (pullMatch && method === 'POST') {
