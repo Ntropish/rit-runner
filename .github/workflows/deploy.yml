@@ -31,6 +31,7 @@ jobs:
           upsert SERVICE_CLIENT_ID "${{ vars.SERVICE_CLIENT_ID }}"
           upsert SERVICE_CLIENT_SECRET "${{ secrets.SERVICE_CLIENT_SECRET }}"
           upsert CLOUDFLARE_TUNNEL_TOKEN "${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}"
+          upsert CATALOG_CF_TOKEN "${{ secrets.CATALOG_CF_TOKEN }}"
 
       - name: Deploy
         run: |

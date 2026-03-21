@@ -12,6 +12,7 @@ services:
       - STATUS_URL=${STATUS_URL}
       - SERVICE_CLIENT_ID=${SERVICE_CLIENT_ID}
       - SERVICE_CLIENT_SECRET=${SERVICE_CLIENT_SECRET}
+      - CLOUDFLARE_TUNNEL_TOKEN=${CATALOG_CF_TOKEN}
     restart: unless-stopped
 
   tunnel:
