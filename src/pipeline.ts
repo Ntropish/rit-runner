@@ -239,13 +239,13 @@ async function materializeRepo(entityStore: EntityStore, outputDir: string) {
   const modules = await entityStore.list(ModuleSchema);
   for (const mod of modules) {
     const modulePath = mod.path as string;
-    const ext = (mod.extension as string) ?? 'ts';
+    const ext = (mod.extension as string) || 'ts';
     try {
       const source = await materializer.materialize(modulePath, typescriptPlugin);
       const outPath = join(outputDir, `${modulePath}.${ext}`);
       mkdirSync(dirname(outPath), { recursive: true });
       writeFileSync(outPath, source);
-      console.log(`  Materialized: ${modulePath}.${ext}`);
+      console.log(`  Materialized: ${modulePath}.${ext} (ext field: ${JSON.stringify(mod.extension)})`);
     } catch (err: any) {
       console.error(`  Failed to materialize ${modulePath}.${ext}: ${err.message}`);
     }
