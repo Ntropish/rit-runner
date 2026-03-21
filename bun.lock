@@ -51,7 +51,7 @@
 
     "picomatch": ["picomatch@4.0.3", "", {}, "sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q=="],
 
-    "rit": ["rit@github:Ntropish/rit#ea27048", { "dependencies": { "node-html-parser": "^7.1.0", "ts-morph": "^27.0.2" }, "bin": { "rit": "src/cli/index.ts" } }, "Ntropish-rit-ea27048", "sha512-/RrUbev72YlrrM+HIkvrJcH2ODM0jnRUvKpoiLfz67MLuCjz/qSwmGwfgR0BvkUQVyRwsg5iH/qauzh1cIopwA=="],
+    "rit": ["rit@github:Ntropish/rit#6899a13", { "dependencies": { "node-html-parser": "^7.1.0", "ts-morph": "^27.0.2" }, "bin": { "rit": "src/cli/index.ts" } }, "Ntropish-rit-6899a13", "sha512-mxXWJwpwJ4w0a59QNcab8BRXU0aKEG2z6UN7D2jh2+UDlffDsDOi0YjFXFpT7E7JfPkmLhgXq2wcnTQ3+oMM5A=="],
 
     "tinyglobby": ["tinyglobby@0.2.15", "", { "dependencies": { "fdir": "^6.5.0", "picomatch": "^4.0.3" } }, "sha512-j2Zq4NyQYG5XMST4cbs02Ak8iJUdxRM0XI5QyxXuZOzKOINmWurp3smXu3y5wDcJrptwpSjgXHzIQxR0omXljQ=="],
 
