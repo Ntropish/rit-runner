@@ -69,8 +69,8 @@ export async function executePipeline(ctx: PipelineContext) {
     timestamp: new Date().toISOString(),
   });
 
-  // Create a working directory for this pipeline run
-  const workDir = join(reposDir, '.runs', `${repoName}-${pipelineName}-${Date.now()}`);
+  // Use a stable working directory per repo+pipeline (persists across runs for deploy)
+  const workDir = join(reposDir, '.deploys', `${repoName}-${pipelineName}`);
   mkdirSync(workDir, { recursive: true });
 
   try {
@@ -190,10 +190,7 @@ export async function executePipeline(ctx: PipelineContext) {
       timestamp: new Date().toISOString(),
     });
 
-    // Clean up work directory
-    try {
-      rmSync(workDir, { recursive: true, force: true });
-    } catch {}
+    // Work directory is preserved for deploy pipelines (processes may still be running)
   }
 }
 
