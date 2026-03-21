@@ -1,4 +1,4 @@
-FROM oven/bun:1.3
+FROM oven/bun:1.3-debian
 
 # Install Docker CLI for pipeline steps that build/deploy containers
 RUN apt-get update && apt-get install -y docker.io docker-compose-plugin && rm -rf /var/lib/apt/lists/*
