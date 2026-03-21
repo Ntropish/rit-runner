@@ -3,7 +3,7 @@ import { join, dirname } from 'node:path';
 import { Repository } from 'rit';
 import { EntityStore } from 'rit/packages/rit-schema/src/index.js';
 import { ModuleSchema } from 'rit/packages/rit-sync/src/schemas.js';
-import { FileMaterializer, typescriptPlugin, jsonPlugin } from 'rit/packages/rit-sync/src/index.js';
+import { FileMaterializer, typescriptPlugin, jsonPlugin, rawFilePlugin } from 'rit/packages/rit-sync/src/index.js';
 
 export interface PipelineContext {
   repoName: string;
@@ -260,6 +260,20 @@ async function materializeRepo(entityStore: EntityStore, outputDir: string) {
       console.log(`  Materialized: ${jsonPath}`);
     } catch (err: any) {
       console.error(`  Failed to materialize ${jsonPath}: ${err.message}`);
+    }
+  }
+
+  // Materialize raw files (Dockerfile, YAML, etc.)
+  const rawPaths = await materializer.listRawFiles();
+  for (const rawPath of rawPaths) {
+    try {
+      const content = await materializer.materializeRawFile(rawPath, rawFilePlugin);
+      const outPath = join(outputDir, rawPath);
+      mkdirSync(dirname(outPath), { recursive: true });
+      writeFileSync(outPath, content);
+      console.log(`  Materialized: ${rawPath}`);
+    } catch (err: any) {
+      console.error(`  Failed to materialize ${rawPath}: ${err.message}`);
     }
   }
 }

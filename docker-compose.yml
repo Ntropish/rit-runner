@@ -5,6 +5,7 @@ services:
       - "4580:4580"
     volumes:
       - ./repos:/data/repos
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - PORT=4580
       - AUTH_ISSUER=${AUTH_ISSUER}

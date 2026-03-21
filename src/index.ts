@@ -7,6 +7,8 @@ import { handleRefs, handlePush, handlePull } from 'rit/src/sync/handlers.js';
 import { SchemaRegistry, EntityStore } from 'rit/packages/rit-schema/src/index.js';
 import { ModuleSchema, FunctionSchema, TypeDefSchema, VariableSchema } from 'rit/packages/rit-sync/src/schemas.js';
 import { PipelineSchema, StepSchema } from 'rit/packages/rit-sync/src/ci-schemas.js';
+import { JsonFileSchema } from 'rit/packages/rit-sync/src/index.js';
+import { RawFileSchema } from 'rit/packages/rit-sync/src/index.js';
 import { executePipeline } from './pipeline.js';
 
 const reposDir = resolve(process.argv[2] ?? './repos');
@@ -112,6 +114,8 @@ async function triggerPipelines(repoName: string, branch: string, commitHash: st
   registry.register(FunctionSchema);
   registry.register(TypeDefSchema);
   registry.register(VariableSchema);
+  registry.register(JsonFileSchema);
+  registry.register(RawFileSchema);
   const entityStore = new EntityStore(repo, registry);
 
   // Find pipelines that match this trigger
