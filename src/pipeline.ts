@@ -93,7 +93,7 @@ export async function executePipeline(ctx: PipelineContext) {
       const start = Date.now();
 
       try {
-        // Special built-in step: materialize
+        // Special built-in steps
         if (command === '__materialize__') {
           await materializeRepo(entityStore, workDir);
           const duration = Date.now() - start;
@@ -108,6 +108,28 @@ export async function executePipeline(ctx: PipelineContext) {
             step: result,
             timestamp: new Date().toISOString(),
           });
+          continue;
+        }
+
+        if (command === '__init__') {
+          // Create package.json with rit dependency and install
+          const pkg = { name: repoName, type: 'module', dependencies: { rit: 'github:Ntropish/rit' } };
+          writeFileSync(join(workDir, 'package.json'), JSON.stringify(pkg, null, 2));
+          const proc = Bun.spawn(['bun', 'install'], { cwd: workDir, stdout: 'pipe', stderr: 'pipe' });
+          const stdout = await new Response(proc.stdout).text();
+          const stderr = await new Response(proc.stderr).text();
+          const exitCode = await proc.exited;
+          const duration = Date.now() - start;
+          if (exitCode !== 0) {
+            const result: StepResult = { name: stepName, status: 'failed', duration, output: stdout, error: stderr };
+            results.push(result);
+            pipelineStatus = 'failed';
+            await reportStatus(statusUrl, { type: 'step-complete', repoName, pipelineName, branch, commitHash, step: result, timestamp: new Date().toISOString() });
+            break;
+          }
+          const result: StepResult = { name: stepName, status: 'success', duration, output: stdout };
+          results.push(result);
+          await reportStatus(statusUrl, { type: 'step-complete', repoName, pipelineName, branch, commitHash, step: result, timestamp: new Date().toISOString() });
           continue;
         }
 
