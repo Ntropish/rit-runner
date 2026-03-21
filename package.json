@@ -1,0 +1,13 @@
+{
+  "name": "rit-runner",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "bun src/index.ts",
+    "dev": "bun --watch src/index.ts"
+  },
+  "dependencies": {
+    "jose": "^6.2.2",
+    "rit": "github:Ntropish/rit"
+  }
+}

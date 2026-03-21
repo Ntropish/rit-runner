@@ -1,0 +1,21 @@
+services:
+  rit-runner:
+    build: .
+    ports:
+      - "4580:4580"
+    volumes:
+      - ./repos:/data/repos
+    environment:
+      - PORT=4580
+      - AUTH_ISSUER=${AUTH_ISSUER}
+      - STATUS_URL=${STATUS_URL}
+    restart: unless-stopped
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    restart: unless-stopped
+    profiles:
+      - tunnel
