@@ -15,6 +15,7 @@ export interface PipelineContext {
   repo: Repository;
   reposDir: string;
   statusUrl: string;
+  secrets: Record<string, string>;
 }
 
 export interface StepResult {
@@ -91,7 +92,7 @@ async function reportStatus(statusUrl: string, event: PipelineEvent) {
 }
 
 export async function executePipeline(ctx: PipelineContext) {
-  const { repoName, branch, commitHash, pipelineName, steps, entityStore, repo, reposDir, statusUrl } = ctx;
+  const { repoName, branch, commitHash, pipelineName, steps, entityStore, repo, reposDir, statusUrl, secrets } = ctx;
   const results: StepResult[] = [];
   let pipelineStatus: 'success' | 'failed' = 'success';
 
@@ -151,7 +152,7 @@ export async function executePipeline(ctx: PipelineContext) {
         // Execute shell command
         const proc = Bun.spawn(['bash', '-c', command], {
           cwd: workDir,
-          env: { ...process.env, ...stepEnv, RIT_REPO: repoName, RIT_BRANCH: branch, RIT_COMMIT: commitHash },
+          env: { ...process.env, ...secrets, ...stepEnv, RIT_REPO: repoName, RIT_BRANCH: branch, RIT_COMMIT: commitHash },
           stdout: 'pipe',
           stderr: 'pipe',
         });

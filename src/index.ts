@@ -10,6 +10,9 @@ import { PipelineSchema, StepSchema } from 'rit/packages/rit-sync/src/ci-schemas
 import { JsonFileSchema } from 'rit/packages/rit-sync/src/index.js';
 import { RawFileSchema } from 'rit/packages/rit-sync/src/index.js';
 import { executePipeline } from './pipeline.js';
+import { SecretsStore } from './secrets.js';
+
+const secretsStore = new SecretsStore(reposDir);
 
 const reposDir = resolve(process.argv[2] ?? './repos');
 const port = parseInt(process.env.PORT ?? '4580', 10);
@@ -144,6 +147,7 @@ async function triggerPipelines(repoName: string, branch: string, commitHash: st
         repo,
         reposDir,
         statusUrl,
+        secrets: secretsStore.getAll(repoName),
       }).catch(err => {
         console.error(`Pipeline '${pipelineName}' failed:`, err);
       });
@@ -218,6 +222,35 @@ const server = Bun.serve({
       const pullBody = await req.json();
       const result = await handlePull(r.repo, pullBody);
       return json(result);
+    }
+
+    // ── Secrets API ───────────────────────────────────────────
+
+    // PUT /api/repos/:name/secrets/:key - set a secret
+    const secretSetMatch = path.match(/^\/api\/repos\/([^/]+)\/secrets\/([^/]+)$/);
+    if (secretSetMatch && method === 'PUT') {
+      const name = decodeURIComponent(secretSetMatch[1]);
+      const key = decodeURIComponent(secretSetMatch[2]);
+      const body = await req.json() as { value: string };
+      if (!body.value) return error('Missing "value" in body');
+      secretsStore.set(name, key, body.value);
+      return json({ ok: true });
+    }
+
+    // DELETE /api/repos/:name/secrets/:key - remove a secret
+    if (secretSetMatch && method === 'DELETE') {
+      const name = decodeURIComponent(secretSetMatch[1]);
+      const key = decodeURIComponent(secretSetMatch[2]);
+      const deleted = secretsStore.delete(name, key);
+      if (!deleted) return error('Secret not found', 404);
+      return json({ ok: true });
+    }
+
+    // GET /api/repos/:name/secrets - list secret names (not values)
+    const secretListMatch = path.match(/^\/api\/repos\/([^/]+)\/secrets$/);
+    if (secretListMatch && method === 'GET') {
+      const name = decodeURIComponent(secretListMatch[1]);
+      return json(secretsStore.list(name));
     }
 
     // Health check
