@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdirSync, writeFileSync, rmSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { Repository } from 'rit';
 import { EntityStore } from 'rit/packages/rit-schema/src/index.js';
@@ -235,6 +235,11 @@ export async function executePipeline(ctx: PipelineContext) {
 async function materializeRepo(entityStore: EntityStore, outputDir: string) {
   const materializer = new FileMaterializer(entityStore);
 
+  // Clean stale files from previous materializations.
+  // Only remove files that materialize produces (code, config, raw files).
+  // Preserve directories like node_modules/ and data files created by later steps.
+  const writtenPaths = new Set<string>();
+
   // Materialize TypeScript/JavaScript modules
   const modules = await entityStore.list(ModuleSchema);
   for (const mod of modules) {
@@ -245,6 +250,7 @@ async function materializeRepo(entityStore: EntityStore, outputDir: string) {
       const outPath = join(outputDir, `${modulePath}.${ext}`);
       mkdirSync(dirname(outPath), { recursive: true });
       writeFileSync(outPath, source);
+      writtenPaths.add(outPath);
       console.log(`  Materialized: ${modulePath}.${ext} (ext field: ${JSON.stringify(mod.extension)})`);
     } catch (err: any) {
       console.error(`  Failed to materialize ${modulePath}.${ext}: ${err.message}`);
@@ -259,6 +265,7 @@ async function materializeRepo(entityStore: EntityStore, outputDir: string) {
       const outPath = join(outputDir, jsonPath);
       mkdirSync(dirname(outPath), { recursive: true });
       writeFileSync(outPath, content);
+      writtenPaths.add(outPath);
       console.log(`  Materialized: ${jsonPath}`);
     } catch (err: any) {
       console.error(`  Failed to materialize ${jsonPath}: ${err.message}`);
@@ -273,9 +280,30 @@ async function materializeRepo(entityStore: EntityStore, outputDir: string) {
       const outPath = join(outputDir, rawPath);
       mkdirSync(dirname(outPath), { recursive: true });
       writeFileSync(outPath, content);
+      writtenPaths.add(outPath);
       console.log(`  Materialized: ${rawPath}`);
     } catch (err: any) {
       console.error(`  Failed to materialize ${rawPath}: ${err.message}`);
     }
   }
+
+  // Remove stale files from previous materializations.
+  // Only clean code/config files; preserve runtime artifacts (node_modules, bun.lock, data files).
+  const preserveDirs = new Set(['node_modules', '.git', 'dist']);
+  const preserveFiles = new Set(['bun.lock']);
+  function cleanStale(dir: string) {
+    if (!existsSync(dir)) return;
+    for (const entry of readdirSync(dir)) {
+      const fullPath = join(dir, entry);
+      if (statSync(fullPath).isDirectory()) {
+        if (!preserveDirs.has(entry) && !entry.startsWith('data.')) {
+          cleanStale(fullPath);
+        }
+      } else if (!writtenPaths.has(fullPath) && !preserveFiles.has(entry) && !entry.startsWith('data.')) {
+        rmSync(fullPath);
+        console.log(`  Removed stale: ${fullPath.slice(outputDir.length + 1)}`);
+      }
+    }
+  }
+  cleanStale(outputDir);
 }
