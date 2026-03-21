@@ -37,15 +37,52 @@ export interface PipelineEvent {
   timestamp: string;
 }
 
+// Service client auth for reporting status to RitCan
+let cachedServiceToken: string | null = null;
+let tokenExpiry = 0;
+
+async function getServiceToken(): Promise<string | null> {
+  if (cachedServiceToken && Date.now() < tokenExpiry) return cachedServiceToken;
+
+  const clientId = process.env.SERVICE_CLIENT_ID;
+  const clientSecret = process.env.SERVICE_CLIENT_SECRET;
+  const issuer = process.env.AUTH_ISSUER ?? 'https://auth.trivorn.org';
+
+  if (!clientId || !clientSecret) return null;
+
+  try {
+    const res = await fetch(`${issuer}/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials',
+        client_id: clientId,
+        client_secret: clientSecret,
+        scope: 'openid',
+      }),
+    });
+    if (!res.ok) return null;
+    const body = await res.json() as { access_token: string; expires_in?: number };
+    cachedServiceToken = body.access_token;
+    tokenExpiry = Date.now() + ((body.expires_in ?? 600) - 30) * 1000;
+    return cachedServiceToken;
+  } catch {
+    return null;
+  }
+}
+
 async function reportStatus(statusUrl: string, event: PipelineEvent) {
   if (!statusUrl) {
     console.log(`[${event.type}]`, JSON.stringify(event, null, 2));
     return;
   }
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const token = await getServiceToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
     await fetch(statusUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(event),
     });
   } catch (err) {

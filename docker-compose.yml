@@ -9,6 +9,8 @@ services:
       - PORT=4580
       - AUTH_ISSUER=${AUTH_ISSUER}
       - STATUS_URL=${STATUS_URL}
+      - SERVICE_CLIENT_ID=${SERVICE_CLIENT_ID}
+      - SERVICE_CLIENT_SECRET=${SERVICE_CLIENT_SECRET}
     restart: unless-stopped
 
   tunnel:
