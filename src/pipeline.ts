@@ -290,7 +290,7 @@ async function materializeRepo(entityStore: EntityStore, outputDir: string) {
   // Remove stale files from previous materializations.
   // Only clean code/config files; preserve runtime artifacts (node_modules, bun.lock, data files).
   const preserveDirs = new Set(['node_modules', '.git', 'dist']);
-  const preserveFiles = new Set(['bun.lock']);
+  const preserveFiles = new Set<string>();
   function cleanStale(dir: string) {
     if (!existsSync(dir)) return;
     for (const entry of readdirSync(dir)) {
