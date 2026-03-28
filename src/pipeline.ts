@@ -229,6 +229,24 @@ export async function executePipeline(ctx: PipelineContext) {
     });
 
     // Work directory is preserved for deploy pipelines (processes may still be running)
+
+    // Prune dangling Docker images to prevent disk fill-up
+    try {
+      const pruneProc = Bun.spawn(['docker', 'image', 'prune', '-f'], {
+        stdout: 'pipe',
+        stderr: 'pipe',
+      });
+      const pruneOut = await new Response(pruneProc.stdout).text();
+      const pruneErr = await new Response(pruneProc.stderr).text();
+      const pruneExit = await pruneProc.exited;
+      if (pruneExit === 0) {
+        console.log(`[docker-prune] ${pruneOut.trim()}`);
+      } else {
+        console.error(`[docker-prune] failed (exit ${pruneExit}): ${pruneErr.trim()}`);
+      }
+    } catch (err: any) {
+      console.error(`[docker-prune] error: ${err.message}`);
+    }
   }
 }
 
