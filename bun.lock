@@ -5,6 +5,8 @@
     "": {
       "name": "rit-runner",
       "dependencies": {
+        "@rit/fs": "0.0.3",
+        "@rit/hono": "0.0.5",
         "@rit/pipeline": "0.0.2",
         "@rit/sigil": "^0.0.6",
         "jose": "^6.2.2",
@@ -14,6 +16,10 @@
   },
   "packages": {
     "@rit/core": ["@rit/core@0.0.2", "https://repo.trivorn.org/@rit/core/-/core-0.0.2.tgz", { "dependencies": { "node-html-parser": "^7.1.0", "ts-morph": "^27.0.2" }, "bin": { "rit": "src/cli/index.ts" } }, "sha512-z555xbWIXShQfyLsPfUsjSQnAVwpoTi5MyB8SQ5NUvAeU8dKCggnSxf0jzgjyYGQmkNAoyW0eZeao5VU57vr5Q=="],
+
+    "@rit/fs": ["@rit/fs@0.0.3", "https://repo.trivorn.org/@rit/fs/-/fs-0.0.3.tgz", { "dependencies": { "@rit/core": "^0.0.2" }, "bin": { "fr": "src/cli.ts" } }, "sha512-4tQIMAGgXy1CborijAJGxnBYG2Xb5vBKqBDZ4cvLHnbObn/R33E3SCQY+INaq7IZr6f0O3Wov/e8Vc0Wcb+lcg=="],
+
+    "@rit/hono": ["@rit/hono@0.0.5", "https://repo.trivorn.org/@rit/hono/-/hono-0.0.5.tgz", { "dependencies": { "@rit/core": "^0.0.2", "@rit/schema": "^0.0.1", "@rit/sigil": "^0.0.1" }, "bin": { "rit-hono-materialize": "src/materialize-cli.ts" } }, "sha512-v//iKEzpdItx0USkhwOhARShFsKKO9dxm3rlG8Alhl+MXmFqZvHK/jTngTr+7p2xrKPww4v1Xtahul6XDztIVQ=="],
 
     "@rit/pipeline": ["@rit/pipeline@0.0.2", "https://repo.trivorn.org/@rit/pipeline/-/pipeline-0.0.2.tgz", { "dependencies": { "@rit/core": "^0.0.2", "@rit/schema": "^0.0.1", "@rit/sigil": "^0.0.1" }, "bin": { "rit-pipeline-materialize": "src/materialize-cli.ts" } }, "sha512-etPM756S8gXLh8y/vqjCEmFt7+18mXmItW8l2P8O5xHOwGB74XShHMIjxa+qJYEBSI+ENdyVRHMkUPkvqwNq7Q=="],
 
@@ -67,9 +73,13 @@
 
     "ts-morph": ["ts-morph@27.0.2", "", { "dependencies": { "@ts-morph/common": "~0.28.1", "code-block-writer": "^13.0.3" } }, "sha512-fhUhgeljcrdZ+9DZND1De1029PrE+cMkIP7ooqkLRTrRLTqcki2AstsyJm0vRNbTbVCNJ0idGlbBrfqc7/nA8w=="],
 
+    "@rit/hono/@rit/sigil": ["@rit/sigil@0.0.1", "https://repo.trivorn.org/@rit/sigil/-/sigil-0.0.1.tgz", { "dependencies": { "@rit/core": "^0.0.1", "@rit/schema": "^0.0.1", "ts-morph": "^27.0.2" } }, "sha512-w0h0jb1ArzpNPdoMhrerVfjeLCW9uIjCidVbK+UGJQW2M+oKKR6aUs988QMlE5LwAZAH/9dyNDmo+Vhfo1Akqg=="],
+
     "@rit/pipeline/@rit/sigil": ["@rit/sigil@0.0.1", "https://repo.trivorn.org/@rit/sigil/-/sigil-0.0.1.tgz", { "dependencies": { "@rit/core": "^0.0.1", "@rit/schema": "^0.0.1", "ts-morph": "^27.0.2" } }, "sha512-w0h0jb1ArzpNPdoMhrerVfjeLCW9uIjCidVbK+UGJQW2M+oKKR6aUs988QMlE5LwAZAH/9dyNDmo+Vhfo1Akqg=="],
 
     "@rit/schema/@rit/core": ["@rit/core@0.0.1", "https://repo.trivorn.org/@rit/core/-/core-0.0.1.tgz", { "dependencies": { "node-html-parser": "^7.1.0", "ts-morph": "^27.0.2" }, "bin": { "rit": "src/cli/index.ts" } }, "sha512-LK1fVse5kRLywVsvQ9eYb2Za4T7znBPK6fGFWRaUXUy9p2DdDVQ+LIdFCVZN9gjIS571QIQkR5whNJKBAcALmA=="],
+
+    "@rit/hono/@rit/sigil/@rit/core": ["@rit/core@0.0.1", "https://repo.trivorn.org/@rit/core/-/core-0.0.1.tgz", { "dependencies": { "node-html-parser": "^7.1.0", "ts-morph": "^27.0.2" }, "bin": { "rit": "src/cli/index.ts" } }, "sha512-LK1fVse5kRLywVsvQ9eYb2Za4T7znBPK6fGFWRaUXUy9p2DdDVQ+LIdFCVZN9gjIS571QIQkR5whNJKBAcALmA=="],
 
     "@rit/pipeline/@rit/sigil/@rit/core": ["@rit/core@0.0.1", "https://repo.trivorn.org/@rit/core/-/core-0.0.1.tgz", { "dependencies": { "node-html-parser": "^7.1.0", "ts-morph": "^27.0.2" }, "bin": { "rit": "src/cli/index.ts" } }, "sha512-LK1fVse5kRLywVsvQ9eYb2Za4T7znBPK6fGFWRaUXUy9p2DdDVQ+LIdFCVZN9gjIS571QIQkR5whNJKBAcALmA=="],
   }
