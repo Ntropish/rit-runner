@@ -7,11 +7,13 @@
     "dev": "bun --watch src/index.ts"
   },
   "dependencies": {
-    "@rit/fs": "0.0.3",
-    "@rit/hono": "0.0.5",
-    "@rit/pipeline": "0.0.2",
-    "@rit/sigil": "^0.0.6",
-    "jose": "^6.2.2",
-    "rit": "github:Ntropish/rit"
+    "@rit/core": "^0.0.3",
+    "@rit/fs": "^0.0.4",
+    "@rit/hono": "^0.0.6",
+    "@rit/pipeline": "^0.0.3",
+    "@rit/schema": "^0.0.4",
+    "@rit/sigil": "^0.0.7",
+    "@rit/sync": "^0.0.2",
+    "jose": "^6.2.2"
   }
 }

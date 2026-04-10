@@ -4,10 +4,10 @@ import { join, dirname, resolve } from 'node:path';
 // Resolve the runner's own node_modules/.bin at load time so pipeline steps can use installed bins (fr, rit-hono-materialize)
 const runnerBinDir = resolve(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '..', 'node_modules', '.bin');
 const pathSep = process.platform === 'win32' ? ';' : ':';
-import { Repository } from 'rit';
-import { EntityStore } from 'rit/packages/rit-schema/src/index.js';
-import { ModuleSchema } from 'rit/packages/rit-sync/src/schemas.js';
-import { FileMaterializer, typescriptPlugin, jsonPlugin, rawFilePlugin } from 'rit/packages/rit-sync/src/index.js';
+import { Repository } from '@rit/core';
+import { EntityStore } from '@rit/schema';
+import { ModuleSchema } from '@rit/sync/src/schemas.js';
+import { FileMaterializer, typescriptPlugin, jsonPlugin, rawFilePlugin } from '@rit/sync';
 import { materialize as sigilMaterialize, type AstEntityWrite } from '@rit/sigil';
 
 export interface PipelineContext {
