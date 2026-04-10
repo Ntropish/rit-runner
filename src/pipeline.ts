@@ -4,8 +4,7 @@ import { Repository } from 'rit';
 import { EntityStore } from 'rit/packages/rit-schema/src/index.js';
 import { ModuleSchema } from 'rit/packages/rit-sync/src/schemas.js';
 import { FileMaterializer, typescriptPlugin, jsonPlugin, rawFilePlugin } from 'rit/packages/rit-sync/src/index.js';
-import { materialize as sigilMaterialize } from '@rit/sigil/src/materializer.js';
-import type { AstEntityWrite } from '@rit/sigil/src/projector.js';
+import { materialize as sigilMaterialize, type AstEntityWrite } from '@rit/sigil';
 
 export interface PipelineContext {
   repoName: string;
