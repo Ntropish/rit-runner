@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y ca-certificates curl gnupg && \
 
 WORKDIR /app
 
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile || bun install
+COPY package.json bun.lock .npmrc ./
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc bun install --frozen-lockfile || bun install
 
 COPY . .
 

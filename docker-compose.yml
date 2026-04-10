@@ -1,6 +1,9 @@
 services:
   rit-runner:
-    build: .
+    build:
+      context: .
+      secrets:
+        - npmrc
     ports:
       - "4580:4580"
     volumes:
@@ -22,3 +25,7 @@ services:
     restart: unless-stopped
     profiles:
       - tunnel
+
+secrets:
+  npmrc:
+    file: .npmrc
