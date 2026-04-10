@@ -149,6 +149,11 @@ async function executeAction(
 
 export async function executePipeline(ctx: PipelineContext) {
   const { repoName, branch, commitHash, pipelineName, steps, entityStore, repo, reposDir, statusUrl, secrets } = ctx;
+
+  // Always inject a fresh OIDC token for Verdaccio auth. Static tokens expire;
+  // the service client provides a fresh one for each pipeline run.
+  const serviceToken = await getServiceToken();
+  if (serviceToken) secrets.NPM_TOKEN = serviceToken;
   const results: StepResult[] = [];
   let pipelineStatus: 'success' | 'failed' = 'success';
 
