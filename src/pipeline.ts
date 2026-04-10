@@ -1,5 +1,9 @@
 import { mkdirSync, writeFileSync, rmSync, existsSync, readdirSync, statSync, readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve } from 'node:path';
+
+// Resolve the runner's own node_modules/.bin at load time so pipeline steps can use installed bins (fr, rit-hono-materialize)
+const runnerBinDir = resolve(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '..', 'node_modules', '.bin');
+const pathSep = process.platform === 'win32' ? ';' : ':';
 import { Repository } from 'rit';
 import { EntityStore } from 'rit/packages/rit-schema/src/index.js';
 import { ModuleSchema } from 'rit/packages/rit-sync/src/schemas.js';
@@ -240,7 +244,7 @@ export async function executePipeline(ctx: PipelineContext) {
         // Execute shell command
         const proc = Bun.spawn(['bash', '-c', command], {
           cwd: workDir,
-          env: { ...process.env, ...secrets, ...stepEnv, RIT_REPO: repoName, RIT_BRANCH: branch, RIT_COMMIT: commitHash },
+          env: { ...process.env, ...secrets, ...stepEnv, PATH: `${runnerBinDir}${pathSep}${process.env.PATH ?? ''}`, RIT_REPO: repoName, RIT_BRANCH: branch, RIT_COMMIT: commitHash },
           stdout: 'pipe',
           stderr: 'pipe',
         });
