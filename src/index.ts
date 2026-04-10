@@ -6,7 +6,7 @@ import { openSqliteStore } from 'rit/src/store/sqlite.js';
 import { handleRefs, handlePush, handlePull } from 'rit/src/sync/handlers.js';
 import { SchemaRegistry, EntityStore } from 'rit/packages/rit-schema/src/index.js';
 import { ModuleSchema, FunctionSchema, TypeDefSchema, VariableSchema } from 'rit/packages/rit-sync/src/schemas.js';
-import { PipelineSchema, StepSchema } from 'rit/packages/rit-sync/src/ci-schemas.js';
+import { pipelineSchema as PipelineSchema, stepSchema as StepSchema } from '@rit/pipeline';
 import { JsonFileSchema } from 'rit/packages/rit-sync/src/index.js';
 import { RawFileSchema } from 'rit/packages/rit-sync/src/index.js';
 import { executePipeline } from './pipeline.js';

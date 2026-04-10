@@ -1,9 +1,11 @@
-import { mkdirSync, writeFileSync, rmSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { mkdirSync, writeFileSync, rmSync, existsSync, readdirSync, statSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { Repository } from 'rit';
 import { EntityStore } from 'rit/packages/rit-schema/src/index.js';
 import { ModuleSchema } from 'rit/packages/rit-sync/src/schemas.js';
 import { FileMaterializer, typescriptPlugin, jsonPlugin, rawFilePlugin } from 'rit/packages/rit-sync/src/index.js';
+import { materialize as sigilMaterialize } from '@rit/sigil/src/materializer.js';
+import type { AstEntityWrite } from '@rit/sigil/src/projector.js';
 
 export interface PipelineContext {
   repoName: string;
@@ -91,6 +93,57 @@ async function reportStatus(statusUrl: string, event: PipelineEvent) {
   }
 }
 
+async function readSigilModule(repo: Repository, moduleId: string): Promise<string | null> {
+  const writes: AstEntityWrite[] = [];
+
+  const moduleFields = await repo.hgetall(`module:${moduleId}`);
+  if (Object.keys(moduleFields).length === 0) return null;
+  writes.push({ key: `module:${moduleId}`, fields: moduleFields });
+
+  for await (const key of repo.keys(`ast:${moduleId}.*`)) {
+    const fields = await repo.hgetall(key);
+    if (Object.keys(fields).length > 0) {
+      writes.push({ key, fields });
+    }
+  }
+
+  if (writes.length <= 1) return null;
+  return sigilMaterialize(writes);
+}
+
+async function executeAction(
+  repo: Repository,
+  actionModuleId: string,
+  workDir: string,
+  env: Record<string, string>,
+): Promise<{ output: string; success: boolean }> {
+  const source = await readSigilModule(repo, actionModuleId);
+  if (!source) {
+    return { output: `Action module '${actionModuleId}' not found in store`, success: false };
+  }
+
+  // Write the materialized module to a temp file and execute it
+  const actionPath = join(workDir, '.generated', `_action_${actionModuleId}.ts`);
+  mkdirSync(dirname(actionPath), { recursive: true });
+  writeFileSync(actionPath, source);
+
+  const proc = Bun.spawn(['bun', 'run', actionPath], {
+    cwd: workDir,
+    env: { ...process.env, ...env },
+    stdout: 'pipe',
+    stderr: 'pipe',
+  });
+
+  const stdout = await new Response(proc.stdout).text();
+  const stderr = await new Response(proc.stderr).text();
+  const exitCode = await proc.exited;
+
+  return {
+    output: stdout + (stderr ? '\n' + stderr : ''),
+    success: exitCode === 0,
+  };
+}
+
 export async function executePipeline(ctx: PipelineContext) {
   const { repoName, branch, commitHash, pipelineName, steps, entityStore, repo, reposDir, statusUrl, secrets } = ctx;
   const results: StepResult[] = [];
@@ -131,6 +184,42 @@ export async function executePipeline(ctx: PipelineContext) {
       const start = Date.now();
 
       try {
+        // Action-based step: materialize and execute a Sigil module
+        const action = step.action as string | undefined;
+        if (action) {
+          const actionResult = await executeAction(repo, action, workDir, { ...secrets, ...stepEnv, RIT_REPO: repoName, RIT_BRANCH: branch, RIT_COMMIT: commitHash });
+          const duration = Date.now() - start;
+
+          if (!actionResult.success) {
+            const result: StepResult = { name: stepName, status: 'failed', duration, output: actionResult.output };
+            results.push(result);
+            pipelineStatus = 'failed';
+            await reportStatus(statusUrl, {
+              type: 'step-complete',
+              repoName,
+              pipelineName,
+              branch,
+              commitHash,
+              step: result,
+              timestamp: new Date().toISOString(),
+            });
+            break;
+          }
+
+          const result: StepResult = { name: stepName, status: 'success', duration, output: actionResult.output };
+          results.push(result);
+          await reportStatus(statusUrl, {
+            type: 'step-complete',
+            repoName,
+            pipelineName,
+            branch,
+            commitHash,
+            step: result,
+            timestamp: new Date().toISOString(),
+          });
+          continue;
+        }
+
         // Special built-in steps
         if (command === '__materialize__') {
           await materializeRepo(entityStore, workDir);
