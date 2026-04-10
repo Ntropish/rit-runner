@@ -5,9 +5,7 @@ import { Repository } from '@rit/core';
 import { openSqliteStore } from '@rit/core/sqlite';
 import { handleRefs, handlePush, handlePull } from '@rit/core/src/sync/handlers.js';
 import { SchemaRegistry, EntityStore } from '@rit/schema';
-import { ModuleSchema, FunctionSchema, TypeDefSchema, VariableSchema } from '@rit/sync/src/schemas.js';
 import { pipelineSchema as PipelineSchema, stepSchema as StepSchema } from '@rit/pipeline';
-import { JsonFileSchema, RawFileSchema } from '@rit/sync';
 import { executePipeline } from './pipeline.js';
 import { SecretsStore } from './secrets.js';
 
@@ -112,12 +110,6 @@ async function triggerPipelines(repoName: string, branch: string, commitHash: st
   const registry = new SchemaRegistry();
   registry.register(PipelineSchema);
   registry.register(StepSchema);
-  registry.register(ModuleSchema);
-  registry.register(FunctionSchema);
-  registry.register(TypeDefSchema);
-  registry.register(VariableSchema);
-  registry.register(JsonFileSchema);
-  registry.register(RawFileSchema);
   const entityStore = new EntityStore(repo, registry);
 
   // Find pipelines that match this trigger
